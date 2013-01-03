@@ -1,7 +1,7 @@
 VERSION = 3
 PATCHLEVEL = 1
 SUBLEVEL = 10
-EXTRAVERSION = -Saber-toothed-Squirrel-v3.4
+EXTRAVERSION = -Saber-toothed-Squirrel-v3.5
 NAME = "Saber-toothed Squirrel"
 
 # *DOCUMENTATION*
