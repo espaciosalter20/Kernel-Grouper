@@ -35,6 +35,9 @@
 #include <asm/cputime.h>
 #include <linux/earlysuspend.h>
 
+#include "../../arch/arm/mach-tegra/clock.h"
+#include "../../arch/arm/mach-tegra/pm.h"
+#include "../../arch/arm/mach-tegra/tegra_pmqos.h"
 
 /******************** Tunable parameters: ********************/
 

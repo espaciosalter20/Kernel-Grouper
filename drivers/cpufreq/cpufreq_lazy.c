@@ -29,6 +29,10 @@
 #include <linux/earlysuspend.h>
 #endif
 
+#include "../../arch/arm/mach-tegra/clock.h"
+#include "../../arch/arm/mach-tegra/pm.h"
+#include "../../arch/arm/mach-tegra/tegra_pmqos.h"
+
 /*
  * dbs is used in this file as a shortform for demandbased switching
  * It helps to keep variable names smaller, simpler
