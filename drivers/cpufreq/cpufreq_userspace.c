@@ -25,6 +25,10 @@
 #include <linux/mutex.h>
 #include <linux/delay.h>
 #include <asm/uaccess.h>
+
+#include "../../arch/arm/mach-tegra/clock.h"
+#include "../../arch/arm/mach-tegra/tegra_pmqos.h"
+
 /**
  * A few values needed by the userspace governor
  */
