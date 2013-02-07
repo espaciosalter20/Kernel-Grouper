@@ -217,7 +217,6 @@ __create_page_tables:
 	/*
 	 * Then map boot params address in r2 or
 	 * the first 1MB of ram if boot params address is not specified.
-	 * We map 2 sections in case the ATAGs/DTB crosses a section boundary.
 	 */
 	mov	r0, r2, lsr #20
 	movs	r0, r0, lsl #20
@@ -226,8 +225,6 @@ __create_page_tables:
 	add	r3, r3, #PAGE_OFFSET
 	add	r3, r4, r3, lsr #18
 	orr	r6, r7, r0
-	str	r6, [r3], #1 << PMD_ORDER
-	add	r6, r6, #1 << SECTION_SHIFT
 	str	r6, [r3]
 
 #ifdef CONFIG_DEBUG_LL
