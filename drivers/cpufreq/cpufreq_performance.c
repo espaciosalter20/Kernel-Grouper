@@ -15,8 +15,6 @@
 #include <linux/cpufreq.h>
 #include <linux/init.h>
 
-#include "../../arch/arm/mach-tegra/clock.h"
-#include "../../arch/arm/mach-tegra/tegra_pmqos.h"
 
 static int cpufreq_governor_performance(struct cpufreq_policy *policy,
 					unsigned int event)
