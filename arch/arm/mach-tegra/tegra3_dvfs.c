@@ -724,8 +724,7 @@ void __init tegra_soc_init_dvfs(void)
 		tegra_dvfs_core_disabled ? "disabled" : "enabled");
 }
 
-void tegra_cpu_dvfs_alter(int edp_thermal_index, const cpumask_t *cpus,
-			  bool before_clk_update)
+void tegra_cpu_dvfs_alter(int edp_thermal_index, bool before_clk_update)
 {
 	bool cpu_warm = !!edp_thermal_index;
 	unsigned int n = cpumask_weight(cpus);
