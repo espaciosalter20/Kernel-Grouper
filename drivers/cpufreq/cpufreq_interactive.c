@@ -35,10 +35,6 @@
 #define CREATE_TRACE_POINTS
 #include <trace/events/cpufreq_interactive.h>
 
-#include "../../arch/arm/mach-tegra/clock.h"
-#include "../../arch/arm/mach-tegra/pm.h"
-#include "../../arch/arm/mach-tegra/tegra_pmqos.h"
-
 static atomic_t active_count = ATOMIC_INIT(0);
 
 struct cpufreq_interactive_cpuinfo {

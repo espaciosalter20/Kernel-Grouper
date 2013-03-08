@@ -35,9 +35,6 @@
 #include <linux/cpu.h>
 
 #include <linux/pm_qos_params.h>
-#ifdef CONFIG_HAS_EARLYSUSPEND
-#include <linux/earlysuspend.h>
-#endif
 #include <asm/system.h>
 
 #include <mach/clk.h>
@@ -63,8 +60,6 @@ static bool is_suspended;
 static int suspend_index;
 
 static bool force_policy_max;
-
-unsigned int tegra_pmqos_cap_freq = CAP_CPU_FREQ_MAX;
 
 static int force_policy_max_set(const char *arg, const struct kernel_param *kp)
 {
@@ -250,12 +245,12 @@ int tegra_edp_update_thermal_zone(int temperature)
 
 	/* Update cpu rate if cpufreq (at least on cpu0) is already started;
 	   alter cpu dvfs table for this thermal zone if necessary */
-	tegra_cpu_dvfs_alter(edp_thermal_index, &edp_cpumask, true);
+	tegra_cpu_dvfs_alter(edp_thermal_index, true);
 	if (target_cpu_speed[0]) {
 		edp_update_limit();
 		tegra_cpu_set_speed_cap(NULL);
 	}
-	tegra_cpu_dvfs_alter(edp_thermal_index, &edp_cpumask, false);
+	tegra_cpu_dvfs_alter(edp_thermal_index, false);
 	mutex_unlock(&tegra_cpu_lock);
 
 	return ret;
@@ -329,7 +324,6 @@ static int tegra_cpu_edp_notify(
 	case CPU_UP_PREPARE:
 		mutex_lock(&tegra_cpu_lock);
 		cpu_set(cpu, edp_cpumask);
-		tegra_cpu_dvfs_alter(edp_thermal_index, &edp_cpumask, true);
 		edp_update_limit();
 
 		cpu_speed = tegra_getspeed(0);
@@ -344,16 +338,13 @@ static int tegra_cpu_edp_notify(
 			printk(KERN_DEBUG "tegra CPU:%sforce EDP limit %u kHz"
 				"\n", ret ? " failed to " : " ", new_speed);
 		}
-		tegra_cpu_dvfs_alter(edp_thermal_index, &edp_cpumask, false);
 		mutex_unlock(&tegra_cpu_lock);
 		break;
 	case CPU_DEAD:
 		mutex_lock(&tegra_cpu_lock);
 		cpu_clear(cpu, edp_cpumask);
-		tegra_cpu_dvfs_alter(edp_thermal_index, &edp_cpumask, true);
 		edp_update_limit();
 		tegra_cpu_set_speed_cap(NULL);
-		tegra_cpu_dvfs_alter(edp_thermal_index, &edp_cpumask, false);
 		mutex_unlock(&tegra_cpu_lock);
 		break;
 	}
@@ -485,8 +476,6 @@ int tegra_update_cpu_speed(unsigned long rate)
 {
 	int ret = 0;
 	struct cpufreq_freqs freqs;
-        unsigned long rate_save = rate;
-        int status = 1;
 
 	freqs.old = tegra_getspeed(0);
 	freqs.new = rate;
@@ -649,15 +638,6 @@ _out:
 	return ret;
 }
 
-#ifdef CONFIG_HAS_EARLYSUSPEND
-/* put early_suspend/late_resume handlers here for the display in order
- * to keep the code out of the display driver, keeping it closer to upstream
- */
-struct early_suspend tegra_cpufreq_early_suspender;
-static struct pm_qos_request_list boost_cpu_freq_req;
-static struct pm_qos_request_list cap_cpu_freq_req;
-#endif
-
 static int tegra_pm_notify(struct notifier_block *nb, unsigned long event,
 	void *dummy)
 {
@@ -777,20 +757,6 @@ static struct cpufreq_driver tegra_cpufreq_driver = {
 	.attr		= tegra_cpufreq_attr,
 };
 
-#ifdef CONFIG_HAS_EARLYSUSPEND
-static void tegra_cpufreq_early_suspend(struct early_suspend *h)
-{
-        pr_info("tegra_cpufreq_early_suspend: cap cpu freq to %u\n",
-                tegra_pmqos_cap_freq);
-        pm_qos_update_request(&cap_cpu_freq_req, (s32)tegra_pmqos_cap_freq);
-}
-static void tegra_cpufreq_late_resume(struct early_suspend *h)
-{
-        pr_info("tegra_cpufreq_late_resume: clean cpu freq cap\n");
-        pm_qos_update_request(&cap_cpu_freq_req, (s32)PM_QOS_CPU_FREQ_MAX_DEFAULT_VALUE);
-}
-#endif
-
 static int __init tegra_cpufreq_init(void)
 {
 	int ret = 0;
@@ -818,16 +784,6 @@ static int __init tegra_cpufreq_init(void)
 	if (ret)
 		return ret;
 
-#ifdef CONFIG_HAS_EARLYSUSPEND
-        pm_qos_add_request(&boost_cpu_freq_req, PM_QOS_CPU_FREQ_MIN, (s32)PM_QOS_CPU_FREQ_MIN_DEFAULT_VALUE);
-        pm_qos_add_request(&cap_cpu_freq_req, PM_QOS_CPU_FREQ_MAX, (s32)PM_QOS_CPU_FREQ_MAX_DEFAULT_VALUE);
-
-        tegra_cpufreq_early_suspender.suspend = tegra_cpufreq_early_suspend;
-        tegra_cpufreq_early_suspender.resume = tegra_cpufreq_late_resume;
-        tegra_cpufreq_early_suspender.level = EARLY_SUSPEND_LEVEL_BLANK_SCREEN;
-        register_early_suspend(&tegra_cpufreq_early_suspender);
-#endif
-
 	return cpufreq_register_driver(&tegra_cpufreq_driver);
 }
 
@@ -836,11 +792,6 @@ static void __exit tegra_cpufreq_exit(void)
 	tegra_throttle_exit();
 	tegra_cpu_edp_exit();
 	tegra_auto_hotplug_exit();
-#ifdef CONFIG_HAS_EARLYSUSPEND
-        pm_qos_remove_request(&boost_cpu_freq_req);
-        pm_qos_remove_request(&cap_cpu_freq_req);
-        unregister_early_suspend(&tegra_cpufreq_early_suspender);
-#endif
 	cpufreq_unregister_driver(&tegra_cpufreq_driver);
 	cpufreq_unregister_notifier(
 		&tegra_cpufreq_policy_nb, CPUFREQ_POLICY_NOTIFIER);

@@ -33,10 +33,6 @@
 #include <asm/cputime.h>
 #include <linux/suspend.h>
 
-#include "../../arch/arm/mach-tegra/clock.h"
-#include "../../arch/arm/mach-tegra/pm.h"
-#include "../../arch/arm/mach-tegra/tegra_pmqos.h"
-
 #define LULZACTIVE_VERSION	(2)
 #define LULZACTIVE_AUTHOR	"tegrak"
 
