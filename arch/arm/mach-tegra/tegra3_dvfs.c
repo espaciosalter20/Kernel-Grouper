@@ -361,8 +361,6 @@ static struct dvfs core_dvfs_table[] = {
 	CORE_DVFS("spdif_out", -1, 1, KHZ,    1,  26000,  26000,  26000,  26000,  26000,   26000,    26000,   26000),
 };
 
-/* CPU alternative DVFS table for cold zone */
-static unsigned long cpu_cold_freqs[MAX_DVFS_FREQS];
 
 int tegra_dvfs_disable_core_set(const char *arg, const struct kernel_param *kp)
 {
@@ -484,18 +482,19 @@ static void __init init_dvfs_cold(struct dvfs *d, int nominal_mv_index)
 	for (i = 0; i < d->num_freqs; i++) {
 		offs = cpu_cold_offs_mhz[i] * MHZ;
 		if (i > nominal_mv_index)
-			cpu_cold_freqs[i] = cpu_cold_freqs[i - 1];
+			d->alt_freqs[i] = d->alt_freqs[i - 1];
 		else if (d->freqs[i] > offs)
-			cpu_cold_freqs[i] = d->freqs[i] - offs;
+			d->alt_freqs[i] = d->freqs[i] - offs;
 		else {
-			cpu_cold_freqs[i] = d->freqs[i];
+			d->alt_freqs[i] = d->freqs[i];
 			pr_warn("tegra3_dvfs: cold offset %lu is too high for"
 				" regular dvfs limit %lu\n", offs, d->freqs[i]);
 		}
 
 		if (i)
-			BUG_ON(cpu_cold_freqs[i] < cpu_cold_freqs[i - 1]);
+			BUG_ON(d->alt_freqs[i] < d->alt_freqs[i - 1]);
 	}
+	d->alt_freqs_state = ALT_FREQS_DISABLED;
 }
 
 static bool __init match_dvfs_one(struct dvfs *d, int speedo_id, int process_id)
@@ -687,11 +686,10 @@ void __init tegra_soc_init_dvfs(void)
 
 void tegra_cpu_dvfs_alter(int edp_thermal_index, bool before_clk_update)
 {
-	bool cpu_warm = !!edp_thermal_index;
-	unsigned long *alt_freqs = cpu_warm ? NULL : cpu_cold_freqs;
+	bool enable = !edp_thermal_index;
 
-	if (cpu_warm == before_clk_update) {
-		int ret = tegra_dvfs_alt_freqs_set(cpu_dvfs, alt_freqs);
+	if (enable != before_clk_update) {
+		int ret = tegra_dvfs_alt_freqs_set(cpu_dvfs, enable);
 		WARN_ONCE(ret, "tegra dvfs: failed to set CPU alternative"
 			       " frequency limits for cold temeperature\n");
 	}
