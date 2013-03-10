@@ -353,6 +353,7 @@ MODFLAGS	= -DMODULE \
 		  -mtune=cortex-a9 \
 		  -fgcse-after-reload \
 		  -fipa-cp-clone \
+		  -ftree-loop-distribute-patterns \
 		  -fpredictive-commoning \
 		  -fsched-spec-load \
 		  -funswitch-loops \
@@ -369,6 +370,7 @@ CFLAGS_KERNEL	= -march=armv7-a \
 		  -mtune=cortex-a9 \
 		  -fgcse-after-reload \
 		  -fipa-cp-clone \
+		  -ftree-loop-distribute-patterns \
 		  -fpredictive-commoning \
 		  -fsched-spec-load \
 		  -funswitch-loops \
