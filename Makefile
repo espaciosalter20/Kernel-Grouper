@@ -356,8 +356,11 @@ MODFLAGS	= -DMODULE \
 		  -fpredictive-commoning \
 		  -fsched-spec-load \
 		  -funswitch-loops \
-		  -fvect-cost-model \
-		  $(call cc-ifversion, -ge, 48, $(call cc-option,-fno-aggressive-loop-optimizations,$(call cc-option,-Wno-sizeof-pointer-memaccess)))
+		  -fvect-cost-model
+ifeq ($(TARGET_GCC),4.8)
+MODFLAGS	+=	-fno-aggressive-loop-optimizations \
+			-Wno-sizeof-pointer-memaccess
+endif
 CFLAGS_MODULE   = $(MODFLAGS)
 AFLAGS_MODULE   = $(MODFLAGS)
 LDFLAGS_MODULE  = -T $(srctree)/scripts/module-common.lds
@@ -370,9 +373,11 @@ CFLAGS_KERNEL	= -march=armv7-a \
 		  -fsched-spec-load \
 		  -funswitch-loops \
 		  -fvect-cost-model \
-		  -O2 \
-		  $(call cc-ifversion, -ge, 48, $(call cc-option,-fno-aggressive-loop-optimizations,$(call cc-option,-Wno-sizeof-pointer-memaccess)))
-
+		  -O2
+ifeq ($(TARGET_GCC),4.8)
+CFLAGS_KERNEL	+=	-fno-aggressive-loop-optimizations \
+			-Wno-sizeof-pointer-memaccess
+endif
 AFLAGS_KERNEL	=
 CFLAGS_GCOV	= -fprofile-arcs -ftest-coverage
 
@@ -384,14 +389,22 @@ LINUXINCLUDE    := -I$(srctree)/arch/$(hdr-arch)/include \
                    $(if $(KBUILD_SRC), -I$(srctree)/include) \
                    -include $(srctree)/include/linux/kconfig.h
 
-KBUILD_CPPFLAGS := -D__KERNEL__ $(call cc-ifversion, -ge, 48, $(call cc-option,-fno-aggressive-loop-optimizations,$(call cc-option,-Wno-sizeof-pointer-memaccess)))
+KBUILD_CPPFLAGS := -D__KERNEL__
+
+ifeq ($(TARGET_GCC),4.8)
+KBUILD_CPPFLAGS	+=	-fno-aggressive-loop-optimizations \
+			-Wno-sizeof-pointer-memaccess
+endif
 
 KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
 		   -fno-strict-aliasing -fno-common \
 		   -Werror-implicit-function-declaration \
 		   -Wno-format-security \
-		   -fno-delete-null-pointer-checks \
-                   $(call cc-ifversion, -ge, 48, $(call cc-option,-fno-aggressive-loop-optimizations,$(call cc-option,-Wno-sizeof-pointer-memaccess)))
+		   -fno-delete-null-pointer-checks
+ifeq ($(TARGET_GCC),4.8)
+KBUILD_CFLAGS	+=	-fno-aggressive-loop-optimizations \
+			-Wno-sizeof-pointer-memaccess
+endif
 KBUILD_AFLAGS_KERNEL :=
 KBUILD_CFLAGS_KERNEL :=
 KBUILD_AFLAGS   := -D__ASSEMBLY__
