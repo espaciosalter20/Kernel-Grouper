@@ -26,7 +26,7 @@
 
 /* in kHz */
 #define BOOST_CPU_FREQ_MIN	1300000
-#define T3_CPU_MIN_FREQ         102000
+#define T3_CPU_MIN_FREQ         51000
 
 /* in 10 MHz
  * this effectively makes all tablets 1600Mhz capable, but is limited by
