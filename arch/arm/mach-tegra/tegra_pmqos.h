@@ -25,7 +25,7 @@
  */
 
 /* in kHz */
-#define BOOST_CPU_FREQ_MIN	1300000
+#define BOOST_CPU_FREQ_MIN	1400000
 #define T3_CPU_MIN_FREQ         51000
 
 /* in 10 MHz
